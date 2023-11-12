@@ -2,36 +2,31 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
 func main() {
-	numJobs := 50
-	jobs := make(chan int, numJobs)
-	results := make(chan bool, numJobs)
+	wg := sync.WaitGroup{}
 
 	// spin up workers
-	numWorkers := 1
+	numWorkers := 50
 	for i := 0; i < numWorkers; i++ {
-		go worker(i, jobs, results)
+
+		wg.Add(1)
+		i := i
+		go func() {
+			defer wg.Done()
+			worker(i)
+		}()
 	}
 
-	for i := 0; i < numJobs; i++ {
-		jobs <- i
-	}
-	close(jobs)
-
-	for i := 0; i < numJobs; i++ {
-		<-results
-	}
+	wg.Wait()
 
 }
 
-func worker(id int, jobs <-chan int, results chan<- bool) {
-	for range jobs {
-		fmt.Println(id, " worker starting job")
-		time.Sleep(time.Second)
-		fmt.Println(id, " worker done")
-		results <- true
-	}
+func worker(id int) {
+	fmt.Println(id, " worker starting job")
+	time.Sleep(time.Second)
+	fmt.Println(id, " worker done")
 }
