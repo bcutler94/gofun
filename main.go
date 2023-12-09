@@ -2,31 +2,20 @@ package main
 
 import (
 	"fmt"
-	"sync"
-	"time"
+	"log"
 )
 
 func main() {
-	wg := sync.WaitGroup{}
+	keys := make(chan string)
 
-	// spin up workers
-	numWorkers := 50
-	for i := 0; i < numWorkers; i++ {
-
-		wg.Add(1)
-		i := i
-		go func() {
-			defer wg.Done()
-			worker(i)
-		}()
+	for i := 0; i < 5; i++ {
+		go func (i int)  {
+			keys <- fmt.Sprintf("%d", i)
+		}(i)
 	}
 
-	wg.Wait()
+	for i := 0; i < 5; i++ {
+		log.Println(<-keys)
+	}
 
-}
-
-func worker(id int) {
-	fmt.Println(id, " worker starting job")
-	time.Sleep(time.Second)
-	fmt.Println(id, " worker done")
 }
